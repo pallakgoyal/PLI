@@ -17,8 +17,10 @@ knitr::opts_chunk$set(echo = TRUE)
 - The market share was calculated by dividing the total sales of goods of that company by the total sales of goods of all companies that were at the same two-digit classification.
 - For the years when sales were not available the data point was dropped and calculations were done.
 - The beneficiaries were classified as micro, small, medium and large following the revised turnover definition by the Ministry of Micro, Small and Medium Enterprises. Under this method, turnover less than or equal to 5 crore is classified as micro, above 5 crore but less than or equal to 50 crore is classified as small and above 50 crore but less than or equal to 250 crore is classified as medium.
-- 
+- 2023 data is not considered as it is not comparable since the base is smaller due to unavailability of data at present. Also, within beneficiaries, the data is available for less than 50% for this year.
+
 ## Heat Maps of Market Shares
+
 The heat maps are drawn using a scaling at the enterprise level.
 ```{r code, include=FALSE}
 # The purpose of this file is to get the market share for the beneficiaries of the firms in categories 1 and 3 of the PLIFPI. The basis is going to be total sales of goods field in the standalone annual financial statements. 
