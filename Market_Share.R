@@ -100,19 +100,20 @@ sales_avg <- sales_avg %>% group_by(prowess_code) %>% summarise(avg_turnover = m
 # adding classification based on MSME Act 
 for(i in 1:73){
   if (sales_avg$avg_turnover[i] <= 50){
-    sales_avg$classification[i] <- "Micro"
+    sales_avg$firm_size[i] <- "Micro"
   }
   else{
     if(sales_avg$avg_turnover[i] <= 500){
-      sales_avg$classification[i] <- "Small"
+      sales_avg$firm_size[i] <- "Small"
     }
     else{
       if(sales_avg$avg_turnover[i] <= 2500){
-        sales_avg$classification[i] <- "Medium"
+        sales_avg$firm_size[i] <- "Medium"
       }
         else{
-          sales_avg$classification[i] <- "Large"
+          sales_avg$firm_size[i] <- "Large"
       }
     }
   }
 }
+# mergig data set of classification so that the heatmaps can be drawn by firm size category
