@@ -15,7 +15,7 @@ class <- class[class$mr_info_full_name=="Annual Report",]
 #considering only the years 2017-2023
 class <- class[class$coprd_date=="2017"|class$coprd_date=="2018"|class$coprd_date=="2019"|class$coprd_date=="2020"|class$coprd_date=="2021"|class$coprd_date=="2022"|class$coprd_date=="2023",]
 #load the sales data.
-sales <- read.table("./sales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 446)
+sales <- read.table("./sales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 466)
 #getting the sales data in a desirable format
 sales[,6] <- as.numeric(sales[,6])
 sales[,3]<- format(as.Date(as.character(sales[,3]), "%Y%m%d"), "%Y")
@@ -90,3 +90,5 @@ plt <- plt + labs(subtitle = "For market share of category 1 and 3 beneficiaries
 plt <- plt + labs(x ="Year", y ="Beneficiary")
 # plotting the Heatmap
 plt
+#currently the heatmap is not very informative as it includes very big and small companies together.
+#in the identity database, we add data related to the category of the beneficiary and the classification based on turnover
