@@ -64,7 +64,7 @@ for (i in 1:nrow(sales_by_class)){
   else
     sales_by_class[i,6] <- {sales_by_class[i,4]/sum(subset(sales_by_class_all, (year == sales_by_class[i,2]) & (nic_code_two_digit == sales_by_class[i,5]), sa_sale_of_goods),na.rm = TRUE)}*100
 }
-write.csv(sales_by_class,"./market_share.csv")
+# write.csv(sales_by_class,"./market_share.csv")
 # year 2023 has smaller base and missing observation so dropping it for comparable visualization
 sales_by_class <- sales_by_class[sales_by_class$year!="2023",]
 # also dropping 2016 as it is not to be analysed
@@ -73,31 +73,13 @@ sales_by_class <- sales_by_class[sales_by_class$year!="2016",]
 sales_by_class[,6] <- as.numeric(sales_by_class[,6])
 # reading prowess_code as text
 sales_by_class[,1] <- as.character(sales_by_class[,1])
-# plotting a heat map
-library(ggplot2)
-plt <- ggplot(sales_by_class,aes(y = prowess_code,x = year, fill = market_share))
-plt <- plt + geom_tile()
-# further customizing the heat map by
-# applying colors and title
-plt <- plt + theme_minimal()
-# setting gradient color as red and white
-plt <- plt + scale_fill_gradient(low="white", high="red")
-# setting the title and subtitles using
-# title and subtitle
-plt <- plt + labs(title = "Heatmap")
-plt <- plt + labs(subtitle = "For market share of category 1 and 3 beneficiaries")
-# setting x and y labels using labs
-plt <- plt + labs(x ="Year", y ="Beneficiary")
-# plotting the Heat map
-plt
-# currently the heat map is not very informative as it includes very big and small companies together.
 # classifying the companies based on average turnover for the period under consideration.
 # the average turnover considered is the pre-COVID period that is 2017-19.
 # creating a data set with average turnover
 library(tidyverse)
 sales_avg <- sales[sales$year == "2017"|sales$year == "2018"|sales$year == "2019",]
 sales_avg <- sales_avg %>% group_by(prowess_code) %>% summarise(avg_turnover = mean(sa_sale_of_goods,na.rm = TRUE))
-# adding classification based on MSME Act 
+# adding firm_size based on MSME Act 
 for(i in 1:73){
   if (sales_avg$avg_turnover[i] <= 50){
     sales_avg$firm_size[i] <- "Micro"
@@ -116,4 +98,30 @@ for(i in 1:73){
     }
   }
 }
-# mergig data set of classification so that the heatmaps can be drawn by firm size category
+# merging data set of firm_size so that the heat maps can be drawn by firm size category
+sales_by_class <- merge(x = sales_by_class, y = sales_avg, by = "prowess_code", all.x = TRUE)
+# plotting heat map for all firms
+# for this the data needs to be transformed
+market_share <- reshape(sales_by_class, idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
+rownames(market_share) <- market_share[,1] 
+x <- as.matrix(market_share[,-c(1,2)])
+heatmap(x, Colv = NA, Rowv = NA, scale="row")
+# plotting a heat map for firms classified as large
+market_share_large <- reshape(subset(sales_by_class, firm_size == "Large"), idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_large) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
+rownames(market_share_large) <- market_share_large[,1] 
+y <- as.matrix(market_share_large[,-c(1,2)])
+heatmap(y, Colv = NA, Rowv = NA, scale="row")
+# plotting heat map for firms classified as medium
+market_share_medium <- reshape(subset(sales_by_class, firm_size == "Medium"), idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_medium) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
+rownames(market_share_medium) <- market_share_medium[,1] 
+z <- as.matrix(market_share_medium[,-c(1,2)])
+heatmap(z, Colv = NA, Rowv = NA, scale="row")
+# plotting heat map for firms classified as small
+market_share_small <- reshape(subset(sales_by_class, firm_size == "Small"), idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_small) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
+rownames(market_share_small) <- market_share_small[,1] 
+w <- as.matrix(market_share_small[,-c(1,2)])
+heatmap(w, Colv = NA, Rowv = NA, scale="row")
