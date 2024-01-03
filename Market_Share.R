@@ -106,22 +106,47 @@ market_share <- reshape(sales_by_class, idvar = c("company_name","prowess_code")
 colnames(market_share) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
 rownames(market_share) <- market_share[,1] 
 x <- as.matrix(market_share[,-c(1,2)])
-heatmap(x, Colv = NA, Rowv = NA, scale="row")
+heatmap(x, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
 # plotting a heat map for firms classified as large
 market_share_large <- reshape(subset(sales_by_class, firm_size == "Large"), idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
 colnames(market_share_large) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
 rownames(market_share_large) <- market_share_large[,1] 
 y <- as.matrix(market_share_large[,-c(1,2)])
-heatmap(y, Colv = NA, Rowv = NA, scale="row")
+heatmap(y, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
 # plotting heat map for firms classified as medium
 market_share_medium <- reshape(subset(sales_by_class, firm_size == "Medium"), idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
 colnames(market_share_medium) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
 rownames(market_share_medium) <- market_share_medium[,1] 
 z <- as.matrix(market_share_medium[,-c(1,2)])
-heatmap(z, Colv = NA, Rowv = NA, scale="row")
+heatmap(z, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
 # plotting heat map for firms classified as small
 market_share_small <- reshape(subset(sales_by_class, firm_size == "Small"), idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
 colnames(market_share_small) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
 rownames(market_share_small) <- market_share_small[,1] 
 w <- as.matrix(market_share_small[,-c(1,2)])
-heatmap(w, Colv = NA, Rowv = NA, scale="row")
+heatmap(w, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+# to plot heat map by the category of the beneficiary the data is transformed as follows
+scheme <- read.csv("./PLISFPI.csv")
+scheme <- scheme[is.na(scheme$Prowess.Code) == FALSE,]
+colnames(scheme)[11] <- "prowess_code"
+colnames(identity)[1] <- "prowess_code"
+identity <- merge(x = identity, y = scheme, by = "prowess_code", all.x = TRUE)
+# removing some less useful columns
+identity <- identity[,-c(7,8,22,23,24)]
+identity <- identity[,-19]
+# merging category details with sales data
+sales_by_class <- merge(x = identity, y = sales_by_class, by = c("prowess_code","company_name"), all.x = TRUE)
+# heat map for category 1 
+market_share_cat1 <- reshape(subset(sales_by_class,Category == "Category 1"),idvar = c("company_name","prowess_code"), timevar = "year", drop = c("co_industry_gp_code","co_industry_name","nic_prod_code","nic_name","Category","RTE..RTC","F..V","Marine","Mozzerrella.Cheese","Innovative","Organic","B.M","CIN","NIC.Code","Year.of.Incorporation","CMIE.Footprint","sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_cat1) <- c("prowess_code","company_name","2021","2019","2020","2017","2018","2022")
+rownames(market_share_cat1) <- market_share_cat1[,1]
+market_share_cat1 <- market_share_cat1[,c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")]
+v <- as.matrix(market_share_cat1[,-c(1,2)])
+heatmap(v, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+# heat map for category 3
+market_share_cat3 <- reshape(subset(sales_by_class,Category == "Category 3"),idvar = c("company_name","prowess_code"), timevar = "year", drop = c("co_industry_gp_code","co_industry_name","nic_prod_code","nic_name","Category","RTE..RTC","F..V","Marine","Mozzerrella.Cheese","Innovative","Organic","B.M","CIN","NIC.Code","Year.of.Incorporation","CMIE.Footprint","sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_cat3) <- c("prowess_code","company_name","2021","2019","2020","2017","2018","2022")
+rownames(market_share_cat3) <- market_share_cat3[,1]
+market_share_cat3 <- market_share_cat1[,c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")]
+u <- as.matrix(market_share_cat3[,-c(1,2)])
+heatmap(u, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
