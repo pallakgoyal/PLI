@@ -1,0 +1,74 @@
+co_code|company_name|co_industry_gp_code|co_industry_name|nic_prod_code|nic_name
+112888|K R B L LTD.|0101011150000000|Other agricultural products|01124|Inorganic farming of non-basmati rice
+115914|MANE KANCOR INGREDIENTS PVT. LTD.|0101012501000000|Cosmetics, toiletries, soaps & detergents|20293|Manufacture of essential oils; modification by chemical processes of oils and fats (e.g. by oxidation, polymerization etc.)
+119601|KEVENTER AGRO LTD.|0101011101701000|Processed foods|10304|Manufacture of fruit or vegetable juices and their concentrates, squashes and powder
+125758|L T FOODS LTD.|0101011150000000|Other agricultural products|01124|Inorganic farming of non-basmati rice
+133154|M T R FOODS PVT. LTD.|0101011101701000|Processed foods|1075|Manufacture of prepared meals and dishes
+138942|MANJILAS FOOD TECH PVT. LTD.|0101011150000000|Other agricultural products|01124|Inorganic farming of non-basmati rice
+140097|MARICO LTD.|0101011101200000|Vegetable oils & products|10402|Manufacture of vegetable oils and fats excluding corn oil
+149122|MOON BEVERAGES LTD.|0101011101701000|Processed foods|11045|Manufacture of soft drinks
+157429|NEKKANTI SEA FOODS LTD.|0101011101702000|Marine foods|10204|Processing and preserving of fish crustacean and similar foods
+157827|NESTLE INDIA LTD.|0101011101701000|Processed foods|11049|Manufacture of other non-alcoholic beverages n.e.c.
+163543|OM OIL & FLOUR MILLS LTD.|0101016000000000|Diversified manufacturing|34|Diversified
+171497|PARLE AGRO PVT. LTD.|0101011101701000|Processed foods|10304|Manufacture of fruit or vegetable juices and their concentrates, squashes and powder
+171498|PARLE BISCUITS PVT. LTD.|0101011101700500|Bakery products|10712|Manufacture of biscuits, cakes, pastries, rusks etc.
+176208|PLANT LIPIDS PVT. LTD.|0101012501000000|Cosmetics, toiletries, soaps & detergents|20293|Manufacture of essential oils; modification by chemical processes of oils and fats (e.g. by oxidation, polymerization etc.)
+180008|PRAVIN FOODS PVT. LTD. [MERGED]|0101011101701000|Processed foods|10616|Manufacture of cereal breakfast foods obtained by roasting or swelling cereal grains
+210328|SANDHYA MARINES LTD.|0101011101702000|Marine foods|10204|Processing and preserving of fish crustacean and similar foods
+222337|SHREE BHAGWATI FLOUR & FOODS PVT. LTD.|0101040405000000|Retail trading|47211|Retail sale of cereals and pulses, tea, coffee, spices and flour
+23774|ASVINI FISHERIES PVT. LTD.|0101011101702000|Marine foods|10204|Processing and preserving of fish crustacean and similar foods
+245605|SYNTHITE INDUSTRIES PVT. LTD.|0101016000000000|Diversified manufacturing|34|Diversified
+248057|TASTY BITE EATABLES LTD.|0101011101701000|Processed foods|10799|Other semi-processed, processed or instant foods n.e.c. except farinaceous products and malted foods and manufacturing activities like Manufacture of egg powder, sambar powder etc. (this excludes the activities covered under 10619)
+248186|TATA CONSUMER PRODUCTS LTD.|0101011101050000|Tea|10791|Processing and blending of tea including Manufacture of instant tea
+261277|VADILAL INDUSTRIES LTD.|0101011101010000|Dairy products|10505|Manufacture of ice-cream, kulfi etc.
+262869|VARUN BEVERAGES LTD.|0101011101701000|Processed foods|11049|Manufacture of other non-alcoholic beverages n.e.c.
+271188|WEIKFIELD FOODS PVT. LTD.|0101011101701000|Processed foods|11049|Manufacture of other non-alcoholic beverages n.e.c.
+281526|DEVI FISHERIES LTD.|0101011101702000|Marine foods|10204|Processing and preserving of fish crustacean and similar foods
+29450|BALAJI WAFERS PVT. LTD.|0101011101701000|Processed foods|10308|Manufacture of potato flour & meals and prepared meals of vegetables
+314421|CHOICE TRADING CORPN. PVT. LTD.|0101011101702000|Marine foods|10204|Processing and preserving of fish crustacean and similar foods
+325523|HALDIRAM BHUJIAWALA LTD.|0101011101701000|Processed foods|1075|Manufacture of prepared meals and dishes
+327608|RAVI FOODS PVT. LTD.|0101011101700500|Bakery products|10712|Manufacture of biscuits, cakes, pastries, rusks etc.
+328203|BIKAJI FOODS INTL. LTD.|0101011101701000|Processed foods|10799|Other semi-processed, processed or instant foods n.e.c. except farinaceous products and malted foods and manufacturing activities like Manufacture of egg powder, sambar powder etc. (this excludes the activities covered under 10619)
+336084|G R B DAIRY FOODS PVT. LTD.|0101011101010000|Dairy products|10504|Manufacture of cream, butter, cheese, curd, ghee, khoya etc.
+339129|SAMI-SABINSA GROUP LTD.|0101012030000000|Drugs & pharmaceuticals|21003|Manufacture of 'ayurvedic' or 'unani' pharmaceutical preparation
+345697|EXOTIC FRUITS PVT. LTD.|0101011101701000|Processed foods|10304|Manufacture of fruit or vegetable juices and their concentrates, squashes and powder
+348998|HALDIRAM FOODS INTL. LTD.|0101011101701000|Processed foods|10616|Manufacture of cereal breakfast foods obtained by roasting or swelling cereal grains
+353460|SURUCHI SPICES PVT. LTD.|0101011150000000|Other agricultural products|01284|Growing of perennial and non-perennial spices and aromatic crops (pepper, capsicum, nutmeg, mace, anise, badian and fennel, cinnamon (canella), cloves, vanilla and other spices and aromatic crops)
+357699|DEL MONTE FOODS PVT. LTD.|0101011101701000|Processed foods|10799|Other semi-processed, processed or instant foods n.e.c. except farinaceous products and malted foods and manufacturing activities like Manufacture of egg powder, sambar powder etc. (this excludes the activities covered under 10619)
+362694|RASNA PVT. LTD.|0101011101701000|Processed foods|11045|Manufacture of soft drinks
+362711|ORGANIC INDIA PVT. LTD.|0101011150000000|Other agricultural products|01286|Growing of plants used primarily in perfumery, in pharmacy or for insecticidal, fungicidal or similar purposes
+372130|K L A FOODS INDIA LTD.|0101040401000000|Wholesale trading|46201|Wholesale of cereals & pulses
+384085|PARAG MILK FOODS LTD.|0101011101010000|Dairy products|10509|Manufacture of other dairy products n.e.c.
+384448|WESTERN INDIA CASHEW CO. PVT. LTD.|0101011150000000|Other agricultural products|01252|Growing of edible nuts (almonds, cashew nuts, chestnuts, hazelnuts pistachios, walnuts and other nuts)
+38924|BRITANNIA INDUSTRIES LTD.|0101011101700500|Bakery products|10712|Manufacture of biscuits, cakes, pastries, rusks etc.
+391246|SANDHYA AQUA EXPORTS PVT. LTD.|0101040401000000|Wholesale trading|46305|Wholesale of edible oils, fats, sugar and processed/manufactured spices etc.
+398277|INDAPUR DAIRY & MILK PRODUCTS LTD.|0101011101010000|Dairy products|10502|Manufacture of milk-powder, ice-cream powder and condensed milk except baby milk food
+399416|PRATAAP SNACKS LTD.|0101011101701000|Processed foods|1075|Manufacture of prepared meals and dishes
+399570|BIKANERVALA FOODS PVT. LTD.|0101011101701000|Processed foods|11049|Manufacture of other non-alcoholic beverages n.e.c.
+412872|GOPAL SNACKS LTD.|0101011101701000|Processed foods|10616|Manufacture of cereal breakfast foods obtained by roasting or swelling cereal grains
+414638|ANMOL INDUSTRIES LTD.|0101011101700500|Bakery products|10712|Manufacture of biscuits, cakes, pastries, rusks etc.
+416884|SUNFRESH AGRO INDS. PVT. LTD.|0101011101010000|Dairy products|10502|Manufacture of milk-powder, ice-cream powder and condensed milk except baby milk food
+42684|ZYDUS WELLNESS LTD.|0101011101200000|Vegetable oils & products|10409|Manufacture of other vegetable oil, animal oil and fats n.e.c
+429926|BRAHMINS FOODS INDIA PVT. LTD.|0101011101701000|Processed foods|11049|Manufacture of other non-alcoholic beverages n.e.c.
+432664|AACHI MASALA FOODS PVT. LTD.|0101040401000000|Wholesale trading|46309|Wholesale of other basic/manufactured food stuffs n.e.c.
+456205|VIDYA HERBS PVT. LTD.|0101012030000000|Drugs & pharmaceuticals|21003|Manufacture of 'ayurvedic' or 'unani' pharmaceutical preparation
+476790|SRESTA NATURAL BIOPRODUCTS PVT. LTD.|0101011101701000|Processed foods|10304|Manufacture of fruit or vegetable juices and their concentrates, squashes and powder
+488714|ISCON BALAJI FOODS PVT. LTD.|0101011101701000|Processed foods|10308|Manufacture of potato flour & meals and prepared meals of vegetables
+511372|SAHYADRI FARMERS PRODUCER CO. LTD.|0101040401000000|Wholesale trading|46309|Wholesale of other basic/manufactured food stuffs n.e.c.
+524469|AVANTI FROZEN FOODS PVT. LTD.|0101011101702000|Marine foods|10204|Processing and preserving of fish crustacean and similar foods
+528182|ZEA MAIZE PVT. LTD.|0101011101701000|Processed foods|11049|Manufacture of other non-alcoholic beverages n.e.c.
+533523|PAGARIYA FOOD PRODUCTS PVT. LTD.|0101011101701000|Processed foods|11049|Manufacture of other non-alcoholic beverages n.e.c.
+535576|G D FOODS MFG. (INDIA) PVT. LTD.|0101011101701000|Processed foods|10304|Manufacture of fruit or vegetable juices and their concentrates, squashes and powder
+54885|DABUR INDIA LTD.|0101012501000000|Cosmetics, toiletries, soaps & detergents|20236|Manufacture of hair oil, shampoo, hair dye etc. (includes Manufacture of shampoos, hair sprays, hair fixers, hair oils, hair creams, hair dyes and bleaches and preparations for permanent waving or straightening of the hair etc.)
+565460|H S M FOODS INTL. PVT. LTD.|0101011101701000|Processed foods|10616|Manufacture of cereal breakfast foods obtained by roasting or swelling cereal grains
+59173|DEVI SEA FOODS LTD.|0101011101702000|Marine foods|10204|Processing and preserving of fish crustacean and similar foods
+72030|FALCON MARINE EXPORTS LTD.|0101011101702000|Marine foods|10204|Processing and preserving of fish crustacean and similar foods
+74341|FOODS & INNS LTD.|0101011101701000|Processed foods|10304|Manufacture of fruit or vegetable juices and their concentrates, squashes and powder
+77643|GADRE MARINE EXPORT PVT. LTD.|0101011101702000|Marine foods|10204|Processing and preserving of fish crustacean and similar foods
+783|A D F FOODS LTD.|0101011101701000|Processed foods|10799|Other semi-processed, processed or instant foods n.e.c. except farinaceous products and malted foods and manufacturing activities like Manufacture of egg powder, sambar powder etc. (this excludes the activities covered under 10619)
+78632|GANESH GRAINS LTD.|0101011101703000|Milling products|10619|Other grain milling and processing n.e.c.
+86945|GUJARAT TEA PROCESSORS & PACKERS LTD.|0101011101050000|Tea|10791|Processing and blending of tea including Manufacture of instant tea
+89485|HALDIRAM SNACKS PVT. LTD.|0101011101701000|Processed foods|11049|Manufacture of other non-alcoholic beverages n.e.c.
+91480|HATSUN AGRO PRODUCT LTD.|0101011101010000|Dairy products|01412|Production of milk from cows or buffaloes
+94080|HINDUSTAN UNILEVER LTD.|0101012501000000|Cosmetics, toiletries, soaps & detergents|20239|Manufacture of other perfumes and toilet preparations n.e.c.
+97066|I T C LTD.|0101011105000000|Tobacco products|12003|Manufacture of cigarettes, cigarette tobacco
