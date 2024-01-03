@@ -1,4 +1,4 @@
-#The purpose of this file is to get the market share for the beneficiaries of the firms in categories 1 and 3 of the PLIFPI. The basis is going to be total of goods field in the standalone annual financial statements. 
+#The purpose of this file is to get the market share for the beneficiaries of the firms in categories 1 and 3 of the PLIFPI. The basis is going to be total sales of goods field in the standalone annual financial statements. 
 
 #Loading the identity details of the beneficiaries.
 identity <- read.table("./identity.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 74)
@@ -65,3 +65,28 @@ for (i in 1:nrow(sales_by_class)){
     sales_by_class[i,6] <- {sales_by_class[i,4]/sum(subset(sales_by_class_all, (year == sales_by_class[i,2]) & (nic_code_two_digit == sales_by_class[i,5]), sa_sale_of_goods),na.rm = TRUE)}*100
 }
 write.csv(sales_by_class,"./market_share.csv")
+#year 2023 has smaller base and missing observation so dropping it for comparable visualization
+sales_by_class <- sales_by_class[sales_by_class$year!="2023",]
+#also dropping 2016 as it is not to be analysed
+sales_by_class <- sales_by_class[sales_by_class$year!="2016",]
+#reading market share as a number
+sales_by_class[,6] <- as.numeric(sales_by_class[,6])
+#reading prowess_code as text
+sales_by_class[,1] <- as.character(sales_by_class[,1])
+#plotting a heatmap
+library(ggplot2)
+plt <- ggplot(sales_by_class,aes(y = prowess_code,x = year, fill = market_share))
+plt <- plt + geom_tile()
+# further customizing the heatmap by
+# applying colors and title
+plt <- plt + theme_minimal()
+# setting gradient color as red and white
+plt <- plt + scale_fill_gradient(low="white", high="red")
+# setting the title and subtitles using
+# title and subtitle
+plt <- plt + labs(title = "Heatmap")
+plt <- plt + labs(subtitle = "For market share of category 1 and 3 beneficiaries")
+# setting x and y labels using labs
+plt <- plt + labs(x ="Year", y ="Beneficiary")
+# plotting the Heatmap
+plt
