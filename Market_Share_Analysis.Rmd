@@ -1,0 +1,195 @@
+---
+title: "Market Share Analysis"
+author: "Pallak Goyal"
+date: "2024-01-03"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Methodology
+
+- Only Category 1 and Category 3 beneficiaries were considered.
+- The consolidated statements contain the total sales of all goods sold by the company. These goods differ even at the two digit level. Therefore sales data was taken from the Standalone annual financial statements.
+- For each year the respective two digit nic classification was considered for determination of market share.
+- The market share was calculated by dividing the total sales of goods of that company by the total sales of goods of all companies that were at the same two-digit classification.
+- For the years when sales were not available the data point was dropped and calculations were done.
+- The beneficiaries were classified as micro, small, medium and large following the revised turnover definition by the Ministry of Micro, Small and Medium Enterprises. Under this method, turnover less than or equal to 5 crore is classified as micro, above 5 crore but less than or equal to 50 crore is classified as small and above 50 crore but less than or equal to 250 crore is classified as medium.
+- 
+## Heat Maps of Market Shares
+The heat maps are drawn using a scaling at the enterprise level.
+```{r code, include=FALSE}
+# The purpose of this file is to get the market share for the beneficiaries of the firms in categories 1 and 3 of the PLIFPI. The basis is going to be total sales of goods field in the standalone annual financial statements. 
+
+# Loading the identity details of the beneficiaries.
+identity <- read.table("./identity.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 74)
+
+# loading the history of classification of the beneficiaries.
+class <- read.table("./class.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 2713)
+# asking r to read the dates as such
+class[,3] <- format(as.Date(as.character(class[,3]), "%Y%m%d"), "%Y")
+# adding a column of nic codes at 2 digit level
+nic_code_two_digit <- as.numeric(substr(as.character(class[,7]), 1, 2))
+class <- cbind(class,nic_code_two_digit)
+# taking only annual reports based classification
+class <- class[class$mr_info_full_name=="Annual Report",]
+# considering only the years 2017-2023
+class <- class[class$coprd_date=="2017"|class$coprd_date=="2018"|class$coprd_date=="2019"|class$coprd_date=="2020"|class$coprd_date=="2021"|class$coprd_date=="2022"|class$coprd_date=="2023",]
+# load the sales data.
+sales <- read.table("./sales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 466)
+# getting the sales data in a desirable format
+sales[,6] <- as.numeric(sales[,6])
+sales[,3]<- format(as.Date(as.character(sales[,3]), "%Y%m%d"), "%Y")
+# creating same column names to help merge data
+colnames(class)[1] <- "prowess_code"
+colnames(sales)[1] <- "prowess_code"
+colnames(class)[3] <- "year"
+colnames(sales)[3] <- "year"
+colnames(sales)[2] <- "company_name"
+# merging data 
+sales_by_class <- merge(x = sales, y = class, by = c("prowess_code","year","company_name"), all.x = TRUE)
+# getting rid of the less likely to be used columns
+sales_by_class <- sales_by_class[,c(1,2,3,6,12)]
+# loading sales data for all prowess companies in the relevant years
+sales_all <- read.table("./sales_all.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 218552)
+# getting the sales_all data in desirable format
+sales_all[,3] <- format(as.Date(as.character(sales_all[,3]), "%Y%m%d"), "%Y")
+sales_all[,6] <- as.numeric(sales_all[,6])
+# getting classification data for all companies
+class_all <- read.table("class_all.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 332327)
+# formatting the date in class_all
+class_all[,3] <- format(as.Date(as.character(class_all[,3]), "%Y%m%d"), "%Y")
+# taking only annual report based classification
+class_all <- class_all[class_all$mr_info_full_name=="Annual Report",]
+# inserting column of nic two digit code
+nic_code_two_digit <- as.numeric(substr(as.character(class_all[,5]), 1, 2))
+class_all <- cbind(class_all,nic_code_two_digit)
+# preparing for merging the data class_all and sales_all
+colnames(class_all)[1] <- "prowess_code"
+colnames(sales_all)[1] <- "prowess_code"
+colnames(class_all)[3] <- "year"
+colnames(sales_all)[3] <- "year"
+colnames(sales_all)[2] <- "company_name"
+# merging class_all and sales_all
+sales_by_class_all <- merge(x = sales_all, y = class_all, by = c("prowess_code","year","company_name"),all.x = TRUE)
+# keeping only the relevant columns in the data
+sales_by_class_all <- sales_by_class_all[,c(1,2,3,6,10)]
+# appending a column of "<>" for market_share to sales_by_class
+market_share <- rep("<>",nrow(sales_by_class))
+sales_by_class <- cbind(sales_by_class,market_share)
+# calculating market share for each cell and writing it to the data
+for (i in 1:nrow(sales_by_class)){
+  if ((is.na(sales_by_class[i,4]) == TRUE)|is.na(sales_by_class[i,5]) == TRUE){
+    sales_by_class[i,6] <- NA
+  }
+  else
+    sales_by_class[i,6] <- {sales_by_class[i,4]/sum(subset(sales_by_class_all, (year == sales_by_class[i,2]) & (nic_code_two_digit == sales_by_class[i,5]), sa_sale_of_goods),na.rm = TRUE)}*100
+}
+# write.csv(sales_by_class,"./market_share.csv")
+# year 2023 has smaller base and missing observation so dropping it for comparable visualization
+sales_by_class <- sales_by_class[sales_by_class$year!="2023",]
+# also dropping 2016 as it is not to be analysed
+sales_by_class <- sales_by_class[sales_by_class$year!="2016",]
+# reading market share as a number
+sales_by_class[,6] <- as.numeric(sales_by_class[,6])
+# reading prowess_code as text
+sales_by_class[,1] <- as.character(sales_by_class[,1])
+# classifying the companies based on average turnover for the period under consideration.
+# the average turnover considered is the pre-COVID period that is 2017-19.
+# creating a data set with average turnover
+library(tidyverse)
+sales_avg <- sales[sales$year == "2017"|sales$year == "2018"|sales$year == "2019",]
+sales_avg <- sales_avg %>% group_by(prowess_code) %>% summarise(avg_turnover = mean(sa_sale_of_goods,na.rm = TRUE))
+# adding firm_size based on MSME Act 
+for(i in 1:73){
+  if (sales_avg$avg_turnover[i] <= 50){
+    sales_avg$firm_size[i] <- "Micro"
+  }
+  else{
+    if(sales_avg$avg_turnover[i] <= 500){
+      sales_avg$firm_size[i] <- "Small"
+    }
+    else{
+      if(sales_avg$avg_turnover[i] <= 2500){
+        sales_avg$firm_size[i] <- "Medium"
+      }
+        else{
+          sales_avg$firm_size[i] <- "Large"
+      }
+    }
+  }
+}
+# merging data set of firm_size so that the heat maps can be drawn by firm size category
+sales_by_class <- merge(x = sales_by_class, y = sales_avg, by = "prowess_code", all.x = TRUE)
+# plotting heat map for all firms
+# for this the data needs to be transformed
+market_share <- reshape(sales_by_class, idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
+rownames(market_share) <- market_share[,1] 
+x <- as.matrix(market_share[,-c(1,2)])
+heatmap(x, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+# plotting a heat map for firms classified as large
+market_share_large <- reshape(subset(sales_by_class, firm_size == "Large"), idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_large) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
+rownames(market_share_large) <- market_share_large[,1] 
+y <- as.matrix(market_share_large[,-c(1,2)])
+heatmap(y, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+# plotting heat map for firms classified as medium
+market_share_medium <- reshape(subset(sales_by_class, firm_size == "Medium"), idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_medium) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
+rownames(market_share_medium) <- market_share_medium[,1] 
+z <- as.matrix(market_share_medium[,-c(1,2)])
+heatmap(z, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+# plotting heat map for firms classified as small
+market_share_small <- reshape(subset(sales_by_class, firm_size == "Small"), idvar = c("company_name","prowess_code"), timevar = "year", drop = c("sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_small) <- c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")
+rownames(market_share_small) <- market_share_small[,1] 
+w <- as.matrix(market_share_small[,-c(1,2)])
+heatmap(w, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+# to plot heat map by the category of the beneficiary the data is transformed as follows
+scheme <- read.csv("./PLISFPI.csv")
+scheme <- scheme[is.na(scheme$Prowess.Code) == FALSE,]
+colnames(scheme)[11] <- "prowess_code"
+colnames(identity)[1] <- "prowess_code"
+identity <- merge(x = identity, y = scheme, by = "prowess_code", all.x = TRUE)
+# removing some less useful columns
+identity <- identity[,-c(7,8,22,23,24)]
+identity <- identity[,-19]
+# merging category details with sales data
+sales_by_class <- merge(x = identity, y = sales_by_class, by = c("prowess_code","company_name"), all.x = TRUE)
+# heat map for category 1 
+market_share_cat1 <- reshape(subset(sales_by_class,Category == "Category 1"),idvar = c("company_name","prowess_code"), timevar = "year", drop = c("co_industry_gp_code","co_industry_name","nic_prod_code","nic_name","Category","RTE..RTC","F..V","Marine","Mozzerrella.Cheese","Innovative","Organic","B.M","CIN","NIC.Code","Year.of.Incorporation","CMIE.Footprint","sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_cat1) <- c("prowess_code","company_name","2021","2019","2020","2017","2018","2022")
+rownames(market_share_cat1) <- market_share_cat1[,1]
+market_share_cat1 <- market_share_cat1[,c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")]
+v <- as.matrix(market_share_cat1[,-c(1,2)])
+heatmap(v, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+# heat map for category 3
+market_share_cat3 <- reshape(subset(sales_by_class,Category == "Category 3"),idvar = c("company_name","prowess_code"), timevar = "year", drop = c("co_industry_gp_code","co_industry_name","nic_prod_code","nic_name","Category","RTE..RTC","F..V","Marine","Mozzerrella.Cheese","Innovative","Organic","B.M","CIN","NIC.Code","Year.of.Incorporation","CMIE.Footprint","sa_sale_of_goods","nic_code_two_digit","avg_turnover","firm_size"),direction = "wide")
+colnames(market_share_cat3) <- c("prowess_code","company_name","2021","2019","2020","2017","2018","2022")
+rownames(market_share_cat3) <- market_share_cat3[,1]
+market_share_cat3 <- market_share_cat1[,c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")]
+u <- as.matrix(market_share_cat3[,-c(1,2)])
+heatmap(u, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+```
+
+```{r all, echo=FALSE}
+heatmap(x, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code",main = "All firms")
+```
+```{r large,echo=FALSE}
+heatmap(y, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code",main = "Large firms")
+```
+```{r medium,echo=FALSE}
+heatmap(z, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code", main = "Medium firms")
+```
+```{r small,echo=FALSE}
+heatmap(w, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code", main = "Small firms")
+```
+```{r cat1,echo=FALSE}
+heatmap(v, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code", main = "Category 1")
+```
+```{r cat3,echo=FALSE}
+heatmap(u, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code", main = "Category 3")
+```
