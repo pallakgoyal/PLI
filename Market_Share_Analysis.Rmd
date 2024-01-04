@@ -176,7 +176,88 @@ colnames(market_share_cat3) <- c("prowess_code","company_name","2021","2019","20
 rownames(market_share_cat3) <- market_share_cat3[,1]
 market_share_cat3 <- market_share_cat1[,c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")]
 u <- as.matrix(market_share_cat3[,-c(1,2)])
-heatmap(u, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+heatmap(u, Colv = NA, Rowv = NA, scale = "row",xlab = "Year", ylab = "Prowess Code")
+# testing hypothesis of the average market share being the same in 2021 and 2022
+t.test(x = market_share[,7], y = market_share[,8])
+# performing the same test for only large beneficiaries
+t.test(x = market_share_large[,7], y = market_share_large[,8])
+# performing the same test for only category 1 beneficiaries
+t.test(x = market_share_cat1[,7], y = market_share_cat1[,8])
+# performing the test for only category 3 beneficiaries
+t.test(x = market_share_cat3[,7], y = market_share_cat3[,8])
+# drawing a mobility matrix for beneficiaries that have nic 10 classification
+# will do this only for those that were classified as 10 for both the years 2017 and 2022
+# creating a subset of market share with year 2017 and nic 10
+nic10_2017 <- subset(sales_by_class, year == "2017" & nic_code_two_digit == 10)
+nic10_2017 <- nic10_2017[,-c(3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20,21,23,24)]
+# creating a subset of market share with year 2022 and nic 10 
+nic10_2022 <- subset(sales_by_class, year == "2022" & nic_code_two_digit == 10)
+nic10_2022 <- nic10_2022[,-c(3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20,21,23,24)]
+# creating a subset of market share with nic 10 and years 2017 and 2022
+nic10 <- merge(x = nic10_2017, y = nic10_2022, by = c("prowess_code","company_name"))
+nic10 <- nic10[,-c(3,5)]
+colnames(nic10)[3] <- "market_share.2017"
+colnames(nic10)[4] <- "market_share.2022"
+# classifying firms in 2017
+for(i in 1:36){
+  if(nic10$market_share.2017[i]>=quantile(nic10$market_share.2017,probs = 0.7)){
+    nic10$position.2017[i] <- "top30"
+  }
+  else
+    if(nic10$market_share.2017[i]<=quantile(nic10$market_share.2017,probs = 0.3)){
+      nic10$position.2017[i] <- "bottom30"
+    }
+  else
+    nic10$position.2017[i] <- "middle40"
+}
+# classifying firms in 2022
+for(i in 1:36){
+  if(nic10$market_share.2022[i]>=quantile(nic10$market_share.2022,probs = 0.7)){
+    nic10$position.2022[i] <- "top30"
+  }
+  else
+    if(nic10$market_share.2022[i]<=quantile(nic10$market_share.2022,probs = 0.3)){
+      nic10$position.2022[i] <- "bottom30"
+    }
+  else
+    nic10$position.2022[i] <- "middle40"
+}
+# creating mobility matrix
+# empty matrix first
+row_names <- c("top30","middle40","bottom30")
+col_names <- c("top30","middle40","bottom30")
+a <- matrix(data = rep(0,9), nrow = 3, ncol = 3, byrow = TRUE, dimnames = list(row_names,col_names))
+# filling it with the number of firms
+for (i in 1:36){
+  if(nic10$position.2022[i] == "top30" && nic10$position.2017[i] == "top30"){
+    a[1,1] <- a[1,1]+1
+  }
+  if(nic10$position.2022[i] == "middle40" && nic10$position.2017[i] == "top30"){
+    a[1,2] <- a[1,2]+1
+  }
+  if(nic10$position.2022[i] == "bottom30" && nic10$position.2017[i] == "top30"){
+    a[1,3] <- a[1,3]+1
+  }
+  if(nic10$position.2022[i] == "top30" && nic10$position.2017[i] == "middle40"){
+    a[2,1] <- a[2,1]+1
+  }
+  if(nic10$position.2022[i] == "middle40" && nic10$position.2017[i] == "middle40"){
+    a[2,2] <- a[2,2]+1
+  }
+  if(nic10$position.2022[i] == "middle40" && nic10$position.2017[i] == "bottom30"){
+    a[2,3] <- a[2,3]+1
+  }
+  if(nic10$position.2022[i] == "bottom30" && nic10$position.2017[i] == "top30"){
+    a[3,1] <- a[3,1]+1
+  }
+  if(nic10$position.2022[i] == "bottom30" && nic10$position.2017[i] == "middle40"){
+    a[3,2] <- a[3,2]+1
+  }
+  if(nic10$position.2022[i] == "bottom30" && nic10$position.2017[i] == "bottom30"){
+    a[3,3] <- a[3,3]+1
+  }
+}
+heatmap(a,Rowv = NA, Colv = "Rowv", xlab = "2022", ylab = "2017",cexRow = 1,cexCol = 1, symm = TRUE)
 ```
 
 ```{r all, echo=FALSE}
@@ -227,6 +308,16 @@ Testing for the pooled sample of category 3 beneficiaries
 t.test(x = market_share_cat3[,7], y = market_share_cat3[,8])
 ```
 The results show that there is no statistically significant difference in the average market share for the category 3 beneficiaries.
+
+## Mobility Matrix
+
+The following mobility matrix was drawn for beneficiary firms that had NIC classification 10 in both 2017 and 2022. Between these firms the market share quantiles were taken to draw the mobility matrix. The colours are based on the value in the cell, therefore they can be interpreted as a heat map.
+
+```{r mobility_matrix_10, echo=FALSE}
+heatmap(a,Rowv = NA, Colv = "Rowv", xlab = "2022", ylab = "2017",cexRow = 1,cexCol = 1, symm = TRUE)
+```
+
+It shows that within the beneficiary firms in the 10 classification there has been very little mobility.
 
 # References
 
