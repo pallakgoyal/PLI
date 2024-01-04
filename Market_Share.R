@@ -150,3 +150,11 @@ rownames(market_share_cat3) <- market_share_cat3[,1]
 market_share_cat3 <- market_share_cat1[,c("prowess_code","company_name","2017","2018","2019","2020","2021","2022")]
 u <- as.matrix(market_share_cat3[,-c(1,2)])
 heatmap(u, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code")
+# testing hypothesis of the average market share being the same in 2021 and 2022
+t.test(x = market_share[,7], y = market_share[,8])
+# performing the same test for only large beneficiaries
+t.test(x = market_share_large[,7], y = market_share_large[,8])
+# performing the same test for only category 1 beneficiaries
+t.test(x = market_share_cat1[,7], y = market_share_cat1[,8])
+# performing the test for only category 3 beneficiaries
+t.test(x = market_share_cat3[,7], y = market_share_cat3[,8])

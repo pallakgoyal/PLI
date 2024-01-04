@@ -19,8 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 - For the years when sales were not available the data point was dropped and calculations were done.
 - The beneficiaries were classified as micro, small, medium and large following the revised turnover definition by the Ministry of Micro, Small and Medium Enterprises. Under this method, turnover less than or equal to 5 crore is classified as micro, above 5 crore but less than or equal to 50 crore is classified as small and above 50 crore but less than or equal to 250 crore is classified as medium.
 - 2023 data is not considered as it is not comparable since the base is smaller due to unavailability of data at present. Also, within beneficiaries, the data is available for less than 50% for this year.
-- In order to establish causality of market share with a time series data one would need the data on prices charged by the firm and its competitors^[For example see @mixon_determinants_1997,@weiss_determinants_1968]. This data is not available so the results are only illustrative and do not establish causality. 
-- For small and medium size firms a control group is formed to establish causality of changes in market share.
+- In order to establish causality of market share with a time series data one would need the data on prices charged by the firm and its competitors^[For example see @mixon_determinants_1997,@weiss_determinants_1968]. This data is not available so the results are only illustrative for further research and do not establish causality^[For small and medium size firms a control group could have been formed to establish causality of changes in market share. However, the sample size is so small that statistical inference will not be possible. Therefore, this exercise is omitted.].
 
 ## Heat Maps of Market Shares
 
@@ -199,5 +198,35 @@ heatmap(v, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code
 heatmap(u, Colv = NA, Rowv = NA, scale="row",xlab = "Year", ylab = "Prowess Code", main = "Category 3")
 ```
 
-## References
+There does not appear to be a pattern in these heat maps. This is further verified using a hypothesis test for difference in means for the samples with large enough sizes to allow meaningful statistical inference.
+
+## Hypothesis testing for mean market shares
+
+The market share averages for year 2021 will be compared to 2022. 
+
+Testing for pooled sample of all category 1 and 3 beneficiaries.
+```{r test_all, echo=FALSE}
+t.test(x = market_share[,7], y = market_share[,8])
+```
+The results show that there is no statistically significant difference in the average market share.
+
+Testing for pooled sample of large beneficiaries.
+```{r test_large, echo=FALSE}
+t.test(x = market_share_large[,7], y = market_share_large[,8])
+```
+The results show that there is no statistically significant difference in the average market share for the large firms.
+
+Testing for the pooled sample of category 1 beneficiaries
+```{r test_cat1, echo=FALSE}
+t.test(x = market_share_cat1[,7], y = market_share_cat1[,8])
+```
+The results show that there is no statistically significant difference in the average market share for the category 1 beneficiaries.
+
+Testing for the pooled sample of category 3 beneficiaries
+```{r test_cat3, echo=FALSE}
+t.test(x = market_share_cat3[,7], y = market_share_cat3[,8])
+```
+The results show that there is no statistically significant difference in the average market share for the category 3 beneficiaries.
+
+# References
 
