@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The heat maps are drawn using a scaling at the enterprise level.
 ```{r code, include=FALSE}
-# The purpose of this file is to get the market share for the beneficiaries of the firms in categories 1 and 3 of the PLIFPI. The basis is going to be total sales of goods field in the standalone annual financial statements. 
+# The purpose of this file is to get the market share for the beneficiaries of the firms in categories 1 and 3 of the PLIFPI. The basis is going to be total sales of goods field in the standalone annual financial statements and consolidated annual financial statements. 
 
 # Loading the identity details of the beneficiaries.
 identity <- read.table("./identity.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 74)
@@ -41,7 +41,7 @@ class <- cbind(class,nic_code_two_digit)
 class <- class[class$mr_info_full_name=="Annual Report",]
 # considering only the years 2017-2023
 class <- class[class$coprd_date=="2017"|class$coprd_date=="2018"|class$coprd_date=="2019"|class$coprd_date=="2020"|class$coprd_date=="2021"|class$coprd_date=="2022"|class$coprd_date=="2023",]
-# load the sales data.
+# load the sales data from sa
 sales <- read.table("./sales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 466)
 # getting the sales data in a desirable format
 sales[,6] <- as.numeric(sales[,6])
@@ -52,6 +52,20 @@ colnames(sales)[1] <- "prowess_code"
 colnames(class)[3] <- "year"
 colnames(sales)[3] <- "year"
 colnames(sales)[2] <- "company_name"
+# getting sales data from ca
+csales <- read.table("./csales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 272)
+# getting csales in desirable format
+csales[,6] <- as.numeric(csales[,6])
+csales[,3]<- format(as.Date(as.character(csales[,3]), "%Y%m%d"), "%Y")
+# getting the row ids of sales that are there in csales
+d.row <- which(sales$prowess_code %in% csales$ca_finance1_cocode)
+# deleting these row ids in sales
+sales <- sales[-d.row,]
+# using rbind to add csales to sales data
+colnames(csales) <- colnames(sales)
+sales <- rbind(sales,csales)
+# getting rid of csales and d.row from the environment to avoid confusion
+rm(csales,d.row)
 # merging data 
 sales_by_class <- merge(x = sales, y = class, by = c("prowess_code","year","company_name"), all.x = TRUE)
 # getting rid of the less likely to be used columns
@@ -61,6 +75,21 @@ sales_all <- read.table("./sales_all.txt", header = T,sep = "|", na.strings="", 
 # getting the sales_all data in desirable format
 sales_all[,3] <- format(as.Date(as.character(sales_all[,3]), "%Y%m%d"), "%Y")
 sales_all[,6] <- as.numeric(sales_all[,6])
+# adding ca sales for all prowess companies 
+csales_all <- read.table("./csales_all.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 42784)
+# getting the csales_all data in desirable format
+csales_all[,3] <- format(as.Date(as.character(csales_all[,3]), "%Y%m%d"), "%Y")
+csales_all[,6] <- as.numeric(csales_all[,6])
+# getting the matching rows of csales_all in the sales_all data
+d.row <- which(sales_all$sa_finance1_cocode %in% csales_all$ca_finance1_cocode)
+# removing csales_all rows from sales_all
+sales_all <- sales_all[-d.row,]
+# setting same colnames for rbind
+colnames(csales_all) <- colnames(sales_all)
+# using rbind to get a combined data
+sales_all <- rbind(sales_all,csales_all)
+# getting rid of csales_all and d.row from the environment to avoid confusion
+rm(csales_all,d.row)
 # getting classification data for all companies
 class_all <- read.table("class_all.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 332327)
 # formatting the date in class_all
@@ -94,7 +123,7 @@ for (i in 1:nrow(sales_by_class)){
 # write.csv(sales_by_class,"./market_share.csv")
 # year 2023 has smaller base and missing observation so dropping it for comparable visualization
 sales_by_class <- sales_by_class[sales_by_class$year!="2023",]
-# also dropping 2016 as it is not to be analysed
+# year 2016 is dropped as it is not needed
 sales_by_class <- sales_by_class[sales_by_class$year!="2016",]
 # reading market share as a number
 sales_by_class[,6] <- as.numeric(sales_by_class[,6])
@@ -107,7 +136,7 @@ library(tidyverse)
 sales_avg <- sales[sales$year == "2017"|sales$year == "2018"|sales$year == "2019",]
 sales_avg <- sales_avg %>% group_by(prowess_code) %>% summarise(avg_turnover = mean(sa_sale_of_goods,na.rm = TRUE))
 # adding firm_size based on MSME Act 
-for(i in 1:73){
+for(i in 1:nrow(sales_avg)){
   if (sales_avg$avg_turnover[i] <= 50){
     sales_avg$firm_size[i] <- "Micro"
   }
@@ -199,7 +228,7 @@ nic10 <- nic10[,-c(3,5)]
 colnames(nic10)[3] <- "market_share.2017"
 colnames(nic10)[4] <- "market_share.2022"
 # classifying firms in 2017
-for(i in 1:36){
+for(i in 1:nrow(nic10)){
   if(nic10$market_share.2017[i]>=quantile(nic10$market_share.2017,probs = 0.7)){
     nic10$position.2017[i] <- "top30"
   }
@@ -211,7 +240,7 @@ for(i in 1:36){
     nic10$position.2017[i] <- "middle40"
 }
 # classifying firms in 2022
-for(i in 1:36){
+for(i in 1:nrow(nic10)){
   if(nic10$market_share.2022[i]>=quantile(nic10$market_share.2022,probs = 0.7)){
     nic10$position.2022[i] <- "top30"
   }
@@ -228,7 +257,7 @@ row_names <- c("top30","middle40","bottom30")
 col_names <- c("top30","middle40","bottom30")
 a <- matrix(data = rep(0,9), nrow = 3, ncol = 3, byrow = TRUE, dimnames = list(row_names,col_names))
 # filling it with the number of firms
-for (i in 1:36){
+for (i in 1:nrow(nic10)){
   if(nic10$position.2022[i] == "top30" && nic10$position.2017[i] == "top30"){
     a[1,1] <- a[1,1]+1
   }
@@ -273,7 +302,7 @@ nic11 <- nic11[,-c(3,5)]
 colnames(nic11)[3] <- "market_share.2017"
 colnames(nic11)[4] <- "market_share.2022"
 # classifying firms in 2017
-for(i in 1:12){
+for(i in 1:nrow(nic11)){
   if(nic11$market_share.2017[i]>=quantile(nic11$market_share.2017,probs = 0.7)){
     nic11$position.2017[i] <- "top30"
   }
@@ -285,7 +314,7 @@ for(i in 1:12){
     nic11$position.2017[i] <- "middle40"
 }
 # classifying firms in 2022
-for(i in 1:12){
+for(i in 1:nrow(nic11)){
   if(nic11$market_share.2022[i]>=quantile(nic11$market_share.2022,probs = 0.7)){
     nic11$position.2022[i] <- "top30"
   }
@@ -302,7 +331,7 @@ row_names <- c("top30","middle40","bottom30")
 col_names <- c("top30","middle40","bottom30")
 b <- matrix(data = rep(0,9), nrow = 3, ncol = 3, byrow = TRUE, dimnames = list(row_names,col_names))
 # filling it with the number of firms
-for (i in 1:12){
+for (i in 1:nrow(nic11)){
   if(nic11$position.2022[i] == "top30" && nic11$position.2017[i] == "top30"){
     b[1,1] <- b[1,1]+1
   }
@@ -398,7 +427,7 @@ Similar exercise was performed for NIC 11 classifed beneficiaries.
 heatmap(b,Rowv = NA, Colv = "Rowv", xlab = "2022", ylab = "2017",cexRow = 1,cexCol = 1, symm = TRUE)
 ```
 
-The matrix shows that there is zero mobility among these firms.
+The matrix shows that there is very little mobility among these firms.
 
 # References
 
