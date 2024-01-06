@@ -18,7 +18,8 @@ class <- class[class$coprd_date=="2017"|class$coprd_date=="2018"|class$coprd_dat
 sales <- read.table("./sales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 466)
 # getting the sales data in a desirable format
 sales[,6] <- as.numeric(sales[,6])
-sales[,3]<- format(as.Date(as.character(sales[,3]), "%Y%m%d"), "%Y")
+sales[,3] <- format(as.Date(as.character(sales[,3]), "%Y%m%d"), "%Y")
+sales[,1] <- as.character(sales[,1])
 # creating same column names to help merge data
 colnames(class)[1] <- "prowess_code"
 colnames(sales)[1] <- "prowess_code"
@@ -30,10 +31,25 @@ csales <- read.table("./csales.txt", header = T,sep = "|", na.strings="", commen
 # getting csales in desirable format
 csales[,6] <- as.numeric(csales[,6])
 csales[,3]<- format(as.Date(as.character(csales[,3]), "%Y%m%d"), "%Y")
+csales[,1] <- as.character(csales[,1])
+# will combine csales and sales such that we add missing data for entity and year to csales from sales
+# will keep the name of the new data as sales for simplicity
+# creating a new id variable for csales
+for (i in 1:nrow(csales)){
+  csales$id[i] <- paste(csales$ca_finance1_cocode[i],csales$ca_finance1_year[i],sep = "_")
+}
+# creating new id variable for sales
+for (i in 1:nrow(sales)){
+  sales$id[i] <- paste(sales$prowess_code[i],sales$year[i],sep = "_")
+}
 # getting the row ids of sales that are there in csales
-d.row <- which(sales$prowess_code %in% csales$ca_finance1_cocode)
+d.row <- which(sales$id %in% csales$id)
 # deleting these row ids in sales
 sales <- sales[-d.row,]
+# getting rid of id column in sales
+sales <- sales[,-7]
+# getting rid of id column in csales
+csales <- csales[,-7]
 # using rbind to add csales to sales data
 colnames(csales) <- colnames(sales)
 sales <- rbind(sales,csales)
@@ -48,15 +64,31 @@ sales_all <- read.table("./sales_all.txt", header = T,sep = "|", na.strings="", 
 # getting the sales_all data in desirable format
 sales_all[,3] <- format(as.Date(as.character(sales_all[,3]), "%Y%m%d"), "%Y")
 sales_all[,6] <- as.numeric(sales_all[,6])
+sales_all[,1] <- as.character(sales_all[,1])
 # adding ca sales for all prowess companies 
 csales_all <- read.table("./csales_all.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 42784)
 # getting the csales_all data in desirable format
 csales_all[,3] <- format(as.Date(as.character(csales_all[,3]), "%Y%m%d"), "%Y")
 csales_all[,6] <- as.numeric(csales_all[,6])
+csales_all[,1] <- as.character(csales_all[,1])
+# will combine csales_all and sales_all such that the missing data for entity by year in csales_all is taken from sales_all
+# will name the merged data as sales_all to avoid any confusion
+# creating new id for csales_all
+for(i in 1:nrow(csales_all)){
+  csales_all$id[i] <- paste(csales_all$ca_finance1_cocode[i],csales_all$ca_finance1_year[i],sep = "_") 
+}
+# creating new id for sales_all
+for(i in 1:nrow(sales_all)){
+  sales_all$id[i] <- paste(sales_all$sa_finance1_cocode[i],sales_all$sa_finance1_year[i],sep = "_")
+}
 # getting the matching rows of csales_all in the sales_all data
-d.row <- which(sales_all$sa_finance1_cocode %in% csales_all$ca_finance1_cocode)
+d.row <- which(sales_all$id %in% csales_all$id)
 # removing csales_all rows from sales_all
 sales_all <- sales_all[-d.row,]
+# getting rid of the id column in csales_all
+csales_all <- csales_all[,-7]
+# getting rid of the id column in sales_all
+sales_all <- sales_all[,-7]
 # setting same colnames for rbind
 colnames(csales_all) <- colnames(sales_all)
 # using rbind to get a combined data
@@ -100,8 +132,6 @@ sales_by_class <- sales_by_class[sales_by_class$year!="2023",]
 sales_by_class <- sales_by_class[sales_by_class$year!="2016",]
 # reading market share as a number
 sales_by_class[,6] <- as.numeric(sales_by_class[,6])
-# reading prowess_code as text
-sales_by_class[,1] <- as.character(sales_by_class[,1])
 # classifying the companies based on average turnover for the period under consideration.
 # the average turnover considered is the pre-COVID period that is 2017-19.
 # creating a data set with average turnover
