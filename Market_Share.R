@@ -1,10 +1,10 @@
 # The purpose of this file is to get the market share for the beneficiaries of the firms in categories 1 and 3 of the PLIFPI. The basis is going to be total sales of goods field in the standalone annual financial statements and consolidated annual financial statements. 
 
 # Loading the identity details of the beneficiaries.
-identity <- read.table("./identity.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 74)
+identity <- read.table("./identity.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 72)
 
 # loading the history of classification of the beneficiaries.
-class <- read.table("./class.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 2713)
+class <- read.table("./class.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 882)
 # asking r to read the dates as such
 class[,3] <- format(as.Date(as.character(class[,3]), "%Y%m%d"), "%Y")
 # adding a column of nic codes at 2 digit level
@@ -15,7 +15,7 @@ class <- class[class$mr_info_full_name=="Annual Report",]
 # considering only the years 2017-2023
 class <- class[class$coprd_date=="2017"|class$coprd_date=="2018"|class$coprd_date=="2019"|class$coprd_date=="2020"|class$coprd_date=="2021"|class$coprd_date=="2022"|class$coprd_date=="2023",]
 # load the sales data from sa
-sales <- read.table("./sales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 466)
+sales <- read.table("./sales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 459)
 # getting the sales data in a desirable format
 sales[,6] <- as.numeric(sales[,6])
 sales[,3] <- format(as.Date(as.character(sales[,3]), "%Y%m%d"), "%Y")
@@ -27,7 +27,7 @@ colnames(class)[3] <- "year"
 colnames(sales)[3] <- "year"
 colnames(sales)[2] <- "company_name"
 # getting sales data from ca
-csales <- read.table("./csales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 272)
+csales <- read.table("./csales.txt", header = T,sep = "|", na.strings="", comment.char = "", quote = "\"", fill = F,nrows = 264)
 # getting csales in desirable format
 csales[,6] <- as.numeric(csales[,6])
 csales[,3]<- format(as.Date(as.character(csales[,3]), "%Y%m%d"), "%Y")
