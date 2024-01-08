@@ -193,8 +193,8 @@ plm_model2 <- plm(i.by.k_1 ~ cf.by.k_1 + ds.by.k + d.by.k_1 + uncertainty_1 + d.
                   model = "within")
 summary(plm_model2, vcov = vcovHC(plm_model2))
 pwartest(plm_model2)
-rob_se <- list(sqrt(diag(vcovHC(pli_model1, type = "HC1"))),
-               sqrt(diag(vcovHC(pli_model2, type = "HC1"))))
+rob_se <- list(sqrt(diag(vcovHC(plm_model1, type = "HC1"))),
+               sqrt(diag(vcovHC(plm_model2, type = "HC1"))))
 stargazer(plm_model1, 
           plm_model2, 
           digits = 3,
