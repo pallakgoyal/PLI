@@ -122,7 +122,7 @@ bs <- bs %>%
 # investment_it-1/capital_it-2 <- i_1.by.k_2
 bs <- bs %>%
   group_by(prowess_code) %>%
-  mutate(i.by.k_1 = investment/capital_1, cf.by.k_1 = cashflow/capital_1, s_1.by.k_1 = sales_1/capital_1, d.by.k_1 = debt/capital_1, i_1.by.k_2 = investment_1/capital_2)
+  mutate(i.by.k_1 = investment/capital_1, cf.by.k_1 = cashflow/capital_1, s_1.by.k_1 = sales_1/capital_1, d.by.k_1 = debt/capital_1, i_1.by.k_2 = investment_1/capital_2, ds.by.k = (sales-sales_1)/capital)
 # loading uncertainty index data
 eui <- read.csv("./EUI_India.csv")
 # creating annual uncertainty database
@@ -138,7 +138,7 @@ bs <- bs %>%
 # generating lagged variable of uncertainty
 bs <- bs %>%
   group_by(prowess_code) %>%
-  mutate(uncertainty_1 = lag(x = uncertainty, order_by = year))
+  mutate(uncertainty_1 = dplyr::lag(x = uncertainty, order_by = year))
 # generating PLI dummy
 PLI <- NULL
 for(i in 1:nrow(bs)){
@@ -149,38 +149,89 @@ for(i in 1:nrow(bs)){
     PLI[i] <- 0
 }
 bs <- cbind(bs,PLI)
-colnames(bs)[20] <- "pli"
+colnames(bs)[21] <- "pli"
+# adding repo rate data
+repo_rate <- read.csv("./repo_rate.csv")
+repo_rate[,1] <- format(base::as.Date(as.character(repo_rate[,1]), "%d-%m-%Y"), "%Y")
+# "-" represents no change in value 
+# so adding the same value as previous value in place of "-"
+for (i in 1:nrow(repo_rate)){
+  if (repo_rate[i,2] == "-"){
+    repo_rate[i,2] <- repo_rate[i-1,2]
+  }
+}
+repo_rate[,2] <- as.numeric(repo_rate[,2])
+repo_rate <- repo_rate %>%
+  group_by(date) %>%
+  summarise(repo_rate = mean(repo_rate, na.rm = TRUE))
+# addding repo_rate as a proxy for cost of capital to bs
+colnames(repo_rate)[1] <- "year"
+bs <- merge(x = bs, y= repo_rate, by = "year", all.x = TRUE)
+# rearranging the data for ease of analysis
+bs <- bs %>%
+  arrange(prowess_code, year)
+# creating a variable 
+# change in repo_rate
+bs <- bs %>%
+  group_by(prowess_code) %>%
+  mutate(d.repo_rate = repo_rate - dplyr::lag(x = repo_rate, order_by = year))
 # running the panel data regression
 library(AER)
 library(plm)
 library(stargazer)
 # declaring the data as panel data
 bs <- pdata.frame(bs, index = c("prowess_code","year"))
-pli_model1 <- plm(i.by.k_1 ~ i_1.by.k_2 + cf.by.k_1 + s_1.by.k_1 + d.by.k_1 + uncertainty_1 + pli, 
-                  data = bs,
-                  index = c("prowess_code", "year"),
-                  model = "pooling")
-coeftest(pli_model1, vcov. = vcovHC, type = "HC1")
-pli_model2 <- plm(i.by.k_1 ~ i_1.by.k_2 + cf.by.k_1 + s_1.by.k_1 + d.by.k_1 + uncertainty_1 + pli, 
+plm_model1 <- plm(i.by.k_1 ~ cf.by.k_1 + s_1.by.k_1 + d.by.k_1 + uncertainty_1 + repo_rate + pli, 
                   data = bs,
                   index = c("prowess_code", "year"),
                   model = "within")
-coeftest(pli_model2, vcov. = vcovHC, type = "HC1")
-pli_model3 <- plm(i.by.k_1 ~ i_1.by.k_2 + cf.by.k_1 + s_1.by.k_1 + d.by.k_1 + uncertainty_1 + pli + I(i_1.by.k_2^2) + I(cf.by.k_1^2) + I(s_1.by.k_1^2) + I(d.by.k_1^2), 
+summary(plm_model1, vcov = vcovHC(plm_model1))
+pwartest(plm_model1)
+plm_model2 <- plm(i.by.k_1 ~ cf.by.k_1 + ds.by.k + d.by.k_1 + uncertainty_1 + d.repo_rate + pli, 
                   data = bs,
                   index = c("prowess_code", "year"),
                   model = "within")
-coeftest(pli_model3, vcov. = vcovHC, type = "HC1")
+summary(plm_model2, vcov = vcovHC(plm_model2))
+pwartest(plm_model2)
 rob_se <- list(sqrt(diag(vcovHC(pli_model1, type = "HC1"))),
-               sqrt(diag(vcovHC(pli_model2, type = "HC1"))),
-               sqrt(diag(vcovHC(pli_model3, type = "HC1"))))
-stargazer(pli_model1, 
-          pli_model2, 
-          pli_model3, 
+               sqrt(diag(vcovHC(pli_model2, type = "HC1"))))
+stargazer(plm_model1, 
+          plm_model2, 
           digits = 3,
           header = FALSE,
           type = "text", 
           se = rob_se,
           title = "Linear Panel Regression Models of effect of PLI scheme on Category 1 beneficiary investment",
           model.numbers = FALSE,
-          column.labels = c("(1)", "(2)", "(3)"))
+          column.labels = c("(1)", "(2)"))
+# reference studies use gmm
+# and also i_1.by.k_2 as an explanatory variable
+# but small sample size here means that gmm will give singular variance covariance matrix
+dpgmm_model1 <- pgmm(i.by.k_1 ~ i_1.by.k_2 + cf.by.k_1 + s_1.by.k_1 + d.by.k_1 + uncertainty_1 + repo_rate + pli | lag(i_1.by.k_2,2:5),
+                   data = bs,
+                   effect = "individual",
+                   model = "twosteps",
+                   transformation = "ld")
+# we are getting a singular variance covariance matrix because the data set is small.
+# the results are still going to be consistent
+# AR(1) should be rejected as we expect serial autocorrelation 
+# AR(2) should not be rejected as we expect no serial autocorrelation here
+# basically the null AR(n) is that there is no serial autocorrelation
+summary(dpgmm_model1, robust = TRUE)
+dpgmm_model2 <- pgmm(i.by.k_1 ~ i_1.by.k_2 + cf.by.k_1 + ds.by.k + d.by.k_1 + uncertainty_1 + d.repo_rate + pli | lag(i_1.by.k_2, 2:5),
+                     data = bs,
+                     effect = "individual",
+                     model = "twosteps",
+                     transformation = "ld")
+summary(dpgmm_model2, robust = TRUE)
+rob_se1 <- list(sqrt(diag(vcovHC(dpgmm_model1, type = "HC1"))),
+               sqrt(diag(vcovHC(dpgmm_model2, type = "HC1"))))
+stargazer(dpgmm_model1, 
+          dpgmm_model2, 
+          digits = 3,
+          header = FALSE,
+          type = "text", 
+          se = rob_se1,
+          title = "GMM Panel Regression Models of effect of PLI scheme on Category 1 beneficiary investment",
+          model.numbers = FALSE,
+          column.labels = c("(1)", "(2)"))
