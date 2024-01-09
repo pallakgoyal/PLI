@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Methodology
 
 - Only Category 1 and Category 3 beneficiaries were considered.
-- The consolidated statements contain the total sales of all goods sold by the company. These goods differ even at the two digit level. Therefore sales data was taken from the Standalone annual financial statements.
+- The consolidated statements were considered for the years and firms wherever available. In case consolidated statements were not prepared for a year( meaning that the company was not holding other entities), the standalone statements were considered.
 - For each year the respective two digit nic classification was considered for determination of market share.
 - The market share was calculated by dividing the total sales of goods of that company by the total sales of goods of all companies that were at the same two-digit classification.
 - For the years when sales were not available the data point was dropped and calculations were done.
