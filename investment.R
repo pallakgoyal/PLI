@@ -207,7 +207,7 @@ stargazer(plm_model1,
 # ols is likely to result in biased estimates due to the problem of endogeneity
 # reference studies use gmm
 # and also i_1.by.k_2 as an explanatory variable
-dpgmm_model1 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + uncertainty_1 + repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(s_1.by.k_1, 1:2) + lag(d_1.by.k_1, 1:2),
+m1 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + uncertainty_1 + repo_rate | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(s_1.by.k_1, 1:2) + lag(d_1.by.k_1, 1:2),
                    data = bs,
                    effect = "individual",
                    model = "twosteps",
@@ -216,22 +216,67 @@ dpgmm_model1 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1
 # AR(1) should be rejected as we expect serial autocorrelation 
 # AR(2) should not be rejected as we expect no serial autocorrelation here
 # basically the null AR(n) is that there is no serial autocorrelation
-summary(dpgmm_model1, robust = TRUE)
-dpgmm_model2 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + d.repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(ds.by.k, 1:2) + lag(d_1.by.k_1, 1:2),
+# sargan test has the null hypothesis that the instruments are valid instruments
+# wald test has the null hypothesis that the instrumented variables are exogenous
+# we would expect to reject the wald test hypothesis as we believe that the instrumented variables are endogenous
+summary(m1, robust = TRUE)
+m2 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + uncertainty_1 + repo_rate + pli| lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(s_1.by.k_1, 1:2) + lag(d_1.by.k_1, 1:2),
                      data = bs,
                      effect = "individual",
                      model = "twosteps",
                      transformation = "ld",
                      collapse = TRUE)
-summary(dpgmm_model2, robust = TRUE)
-rob_se1 <- list(sqrt(diag(vcovHC(dpgmm_model1, type = "HC1"))),
-               sqrt(diag(vcovHC(dpgmm_model2, type = "HC1"))))
-stargazer(dpgmm_model1, 
-          dpgmm_model2, 
+summary(m2, robust = TRUE)
+
+m3 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(ds.by.k, 1:2) + lag(d_1.by.k_1, 1:2),
+                     data = bs,
+                     effect = "individual",
+                     model = "twosteps",
+                     transformation = "ld",
+                     collapse = TRUE)
+summary(m3, robust = TRUE)
+
+m4 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + uncertainty_1 + d.repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(s_1.by.k_1, 1:2) + lag(d_1.by.k_1, 1:2),
+                     data = bs,
+                     effect = "individual",
+                     model = "twosteps",
+                     transformation = "ld",
+                     collapse = TRUE)
+summary(m4, robust = TRUE)
+
+m5 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + d.repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(ds.by.k, 1:2) + lag(d_1.by.k_1, 1:2),
+                     data = bs,
+                     effect = "individual",
+                     model = "twosteps",
+                     transformation = "ld",
+                     collapse = TRUE)
+summary(m5, robust = TRUE)
+
+rob_se1 <- list(sqrt(diag(vcovHC(m1, type = "HC1", method = "arellano", cluster = "group"))),
+               sqrt(diag(vcovHC(m2, type = "HC1", method = "arellano", cluster = "group"))),
+               sqrt(diag(vcovHC(m3, type = "HC1", method = "arellano", cluster = "group"))),
+               sqrt(diag(vcovHC(m4, type = "HC1", method = "arellano", cluster = "group"))),
+               sqrt(diag(vcovHC(m5, type = "HC1", method = "arellano", cluster = "group"))))
+stargazer(m1, 
+          m2,
+          m3,
+          m4,
+          m5,
           digits = 3,
           header = FALSE,
           type = "text", 
           se = rob_se1,
           title = "GMM Panel Regression Models of effect of PLI scheme on Category 1 beneficiary investment",
           model.numbers = FALSE,
-          column.labels = c("(1)", "(2)"))
+          column.labels = c("(1)", "(2)","(3)","(4)","(5)"))
+# trying to calculate the correlation matrix for cross section data obtained from year FY 19
+FY2019 <- cor(subset(bs, year == "2019", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+# calculating the correlation matrix for all other years and averaging it to get an idea about the panel.
+FY2020 <- cor(subset(bs, year == "2020", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+FY2021 <- cor(subset(bs, year == "2021", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+FY2022 <- cor(subset(bs, year == "2022", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+FY2023 <- cor(subset(bs, year == "2023", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+FY2016 <- cor(subset(bs, year == "2016", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)), use = "na.or.complete")
+FY2017 <- cor(subset(bs, year == "2017", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)), use = "na.or.complete")
+FY2018 <- cor(subset(bs, year == "2018", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)), use = "na.or.complete")
+mcor <- (abs(FY2016)+abs(FY2017)+abs(FY2018)+abs(FY2019)+abs(FY2020)+abs(FY2021)+abs(FY2022)+abs(FY2023))/8

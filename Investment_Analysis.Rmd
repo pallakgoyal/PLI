@@ -195,33 +195,8 @@ library(plm)
 library(stargazer)
 # declaring the data as panel data
 bs <- pdata.frame(bs, index = c("prowess_code","year"))
-plm_model1 <- plm(i.by.k ~ cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + uncertainty_1 + repo_rate + pli, 
-                  data = bs,
-                  index = c("prowess_code", "year"),
-                  model = "within")
-summary(plm_model1, vcov = vcovHC(plm_model1))
-pwartest(plm_model1)
-plm_model2 <- plm(i.by.k ~ cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + d.repo_rate + pli, 
-                  data = bs,
-                  index = c("prowess_code", "year"),
-                  model = "within")
-summary(plm_model2, vcov = vcovHC(plm_model2))
-pwartest(plm_model2)
-rob_se <- list(sqrt(diag(vcovHC(plm_model1, type = "HC1"))),
-               sqrt(diag(vcovHC(plm_model2, type = "HC1"))))
-stargazer(plm_model1, 
-          plm_model2, 
-          digits = 3,
-          header = FALSE,
-          type = "text", 
-          se = rob_se,
-          title = "Linear Panel Regression Models of effect of PLI scheme on Category 1 beneficiary investment",
-          model.numbers = FALSE,
-          column.labels = c("(1)", "(2)"))
-# ols is likely to result in biased estimates due to the problem of endogeneity
-# reference studies use gmm
-# and also i_1.by.k_2 as an explanatory variable
-dpgmm_model1 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + uncertainty_1 + repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(s_1.by.k_1, 1:2) + lag(d_1.by.k_1, 1:2),
+# running models
+m1 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + uncertainty_1 + repo_rate | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(s_1.by.k_1, 1:2) + lag(d_1.by.k_1, 1:2),
                    data = bs,
                    effect = "individual",
                    model = "twosteps",
@@ -230,25 +205,47 @@ dpgmm_model1 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1
 # AR(1) should be rejected as we expect serial autocorrelation 
 # AR(2) should not be rejected as we expect no serial autocorrelation here
 # basically the null AR(n) is that there is no serial autocorrelation
-summary(dpgmm_model1, robust = TRUE)
-dpgmm_model2 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + d.repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(ds.by.k, 1:2) + lag(d_1.by.k_1, 1:2),
+# sargan test has the null hypothesis that the instruments are valid instruments
+# wald test has the null hypothesis that the instrumented variables are exogenous
+# we would expect to reject the wald test hypothesis as we believe that the instrumented variables are endogenous
+summary(m1, robust = TRUE)
+m2 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + uncertainty_1 + repo_rate + pli| lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(s_1.by.k_1, 1:2) + lag(d_1.by.k_1, 1:2),
                      data = bs,
                      effect = "individual",
                      model = "twosteps",
                      transformation = "ld",
                      collapse = TRUE)
-summary(dpgmm_model2, robust = TRUE)
-rob_se1 <- list(sqrt(diag(vcovHC(dpgmm_model1, type = "HC1"))),
-               sqrt(diag(vcovHC(dpgmm_model2, type = "HC1"))))
-stargazer(dpgmm_model1, 
-          dpgmm_model2, 
-          digits = 3,
-          header = FALSE,
-          type = "text", 
-          se = rob_se1,
-          title = "GMM Panel Regression Models of effect of PLI scheme on Category 1 beneficiary investment",
-          model.numbers = FALSE,
-          column.labels = c("(1)", "(2)"))
+summary(m2, robust = TRUE)
+
+m3 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(ds.by.k, 1:2) + lag(d_1.by.k_1, 1:2),
+                     data = bs,
+                     effect = "individual",
+                     model = "twosteps",
+                     transformation = "ld",
+                     collapse = TRUE)
+summary(m3, robust = TRUE)
+
+m4 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + uncertainty_1 + d.repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(s_1.by.k_1, 1:2) + lag(d_1.by.k_1, 1:2),
+                     data = bs,
+                     effect = "individual",
+                     model = "twosteps",
+                     transformation = "ld",
+                     collapse = TRUE)
+summary(m4, robust = TRUE)
+
+m5 <- pgmm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + d.repo_rate + pli | lag(i_1.by.k_1, 2:3), lag(cf_1.by.k_1, 1:2) + lag(ds.by.k, 1:2) + lag(d_1.by.k_1, 1:2),
+                     data = bs,
+                     effect = "individual",
+                     model = "twosteps",
+                     transformation = "ld",
+                     collapse = TRUE)
+summary(m5, robust = TRUE)
+
+rob_se1 <- list(sqrt(diag(vcovHC(m1, type = "HC1", method = "arellano", cluster = "group"))),
+               sqrt(diag(vcovHC(m2, type = "HC1", method = "arellano", cluster = "group"))),
+               sqrt(diag(vcovHC(m3, type = "HC1", method = "arellano", cluster = "group"))),
+               sqrt(diag(vcovHC(m4, type = "HC1", method = "arellano", cluster = "group"))),
+               sqrt(diag(vcovHC(m5, type = "HC1", method = "arellano", cluster = "group"))))
 ```
 
 ## Introduction
@@ -267,16 +264,72 @@ In order to correct for endogeneity, GMM method is used in the literature^[See f
 
 Therefore, GMM method was used for estimation. 
 
-Two models were estimated as given below:
+### Problem of multicolinearity
+
+For a panel data model it is not possible to calculate a normal correlation matrix between the dependent variables. For the purposes of this analysis some indication of the correlation can be obtained by looking at a cross section.
+This is dome below by drawing the correlation matrix for the FY 2019.
+
+```{r correlation_matrix,echo=FALSE}
+cor(subset(bs, year == "2019", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)))
+```
+
+The results show that there is a high correlation between cashflows and sales.
+One way to look at the correlation matrix for the entire panel is to take the average of the correlation for all the cross sections. The direction of correlation varies from year to year, so that it is better to take an average of the absolute values.This is what is done next.
+
+```{r abs_correlation_matrix, echo=FALSE}
+# trying to calculate the correlation matrix for cross section data obtained from year FY 19
+FY2019 <- cor(subset(bs, year == "2019", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+# calculating the correlation matrix for all other years and averaging it to get an idea about the panel.
+FY2020 <- cor(subset(bs, year == "2020", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+FY2021 <- cor(subset(bs, year == "2021", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+FY2022 <- cor(subset(bs, year == "2022", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+FY2023 <- cor(subset(bs, year == "2023", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)),use = "na.or.complete")
+FY2016 <- cor(subset(bs, year == "2016", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)), use = "na.or.complete")
+FY2017 <- cor(subset(bs, year == "2017", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)), use = "na.or.complete")
+FY2018 <- cor(subset(bs, year == "2018", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)), use = "na.or.complete")
+mcor <- (abs(FY2016)+abs(FY2017)+abs(FY2018)+abs(FY2019)+abs(FY2020)+abs(FY2021)+abs(FY2022)+abs(FY2023))/8
+mcor
+```
+
+The results again show that there is a high correlation between cashflows and sales. 
+In the presence of imperfect multicollinaearity the t-ratios of the coefficients are not reliable for the correlated variables. However, as the variable of interest is not correlated with the other variables, there is no need to worry about the problem of collinearity. 
+
+### Models
+
+Following models were estimated: 
+
+Model 1
 $$
 \begin{equation}
 \tag{1}
-\Big(\frac{I}{K}\Big)_{i,t} = \Big(\frac{I}{K}\Big)_{i,t-1} + \Big(\frac{CF}{K}\Big)_{i,t-1} + \Big(\frac{S}{K}\Big)_{i,t-1} + \Big(\frac{D}{K}\Big)_{i,t-1} + Uncertainty_{t-1} + RepoRate_{t} + PLI_{t}
+\Big(\frac{I}{K}\Big)_{i,t} = \Big(\frac{I}{K}\Big)_{i,t-1} + \Big(\frac{CF}{K}\Big)_{i,t-1} + \Big(\frac{S}{K}\Big)_{i,t-1} + \Big(\frac{D}{K}\Big)_{i,t-1} + Uncertainty_{t-1} + RepoRate_{t}
 \end{equation}
 $$
+Model 2
 $$
 \begin{equation}
 \tag{2}
+\Big(\frac{I}{K}\Big)_{i,t} = \Big(\frac{I}{K}\Big)_{i,t-1} + \Big(\frac{CF}{K}\Big)_{i,t-1} + \Big(\frac{S}{K}\Big)_{i,t-1} + \Big(\frac{D}{K}\Big)_{i,t-1} + Uncertainty_{t-1} + RepoRate_{t} + PLI_{t}
+\end{equation}
+$$
+Model 3
+$$
+\begin{equation}
+\tag{3}
+\Big(\frac{I}{K}\Big)_{i,t} = \Big(\frac{I}{K}\Big)_{i,t-1} + \Big(\frac{CF}{K}\Big)_{i,t-1} + \Big(\frac{\Delta S}{K}\Big)_{i,t} + \Big(\frac{D}{K}\Big)_{i,t-1} + Uncertainty_{t-1} + RepoRate_{t} + PLI_{t}
+\end{equation}
+$$
+Model 4
+$$
+\begin{equation}
+\tag{4}
+\Big(\frac{I}{K}\Big)_{i,t} = \Big(\frac{I}{K}\Big)_{i,t-1} + \Big(\frac{CF}{K}\Big)_{i,t-1} + \Big(\frac{S}{K}\Big)_{i,t-1} + \Big(\frac{D}{K}\Big)_{i,t-1} + Uncertainty_{t-1} + \Delta RepoRate_{t} + PLI_{t}
+\end{equation}
+$$
+Model 5
+$$
+\begin{equation}
+\tag{5}
 \Big(\frac{I}{K}\Big)_{i,t} = \Big(\frac{I}{K}\Big)_{i,t-1} + \Big(\frac{CF}{K}\Big)_{i,t-1} + \Big(\frac{\Delta S}{K}\Big)_{i,t} + \Big(\frac{D}{K}\Big)_{i,t-1} + Uncertainty_{t-1} + \Delta RepoRate_{t} + PLI_{t}
 \end{equation}
 $$
@@ -285,18 +338,39 @@ The annual measure of uncertainty was taken by taken the average of the monthly 
 The annual repo rate series was generated by averaging for quarterly figures available at the Database on Indian Economy maintained by the RBI.
 Here, $I$ represents investment, $K$ represents capital stock, $CF$ represents cash flows, $S$ represents sales, $D$ represents debt and $\Delta$ represents change in a variable.
 Year fixed effects other than PLI were sought to be captured through repo rate and uncertainty.
+
+$I$ = Addition to Gross fixed Assets - Total addition to gross intangible assets
+
+$D$ = Long term borrowings + Current portoin of long term borrowings
+
+$S$ = Sale of goods
+
+$K$ = Net fixed Assets
+
+$CF$ = Net Cash flows from operating activities
+
 ```{r dpgmm, echo=FALSE}
-stargazer(dpgmm_model1, 
-          dpgmm_model2, 
+library(stargazer)
+
+stargazer(m1, 
+          m2,
+          m3,
+          m4,
+          m5,
           digits = 3,
           header = FALSE,
           type = "text", 
           se = rob_se1,
           title = "GMM Panel Regression Models of effect of PLI scheme on Category 1 beneficiary investment",
           model.numbers = FALSE,
-          column.labels = c("(1)", "(2)"))
+          column.labels = c("(1)", "(2)","(3)","(4)","(5)"))
 ```
 
-The results indicate that PLI has had no significant effect on the investment levels of the beneficiaries.
+The results indicate that PLI has had no significant effect on the investment levels of the beneficiaries for all the specifications except one, where there is a significant positive effect at the 5% level.
+
+### Measuring goodness of fit
+
+In GMM estimation, we are not minimising the sum of error terms, so it is not a good idea to claculate the R square value. However, as a rule of thumb, some people calculate the correlation between actual and predicted values and square it to use as a pseudo R squared.
+
 
 ## References
