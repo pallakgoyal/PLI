@@ -246,7 +246,7 @@ rob_se1 <- list(sqrt(diag(vcovHC(m1, type = "HC1", method = "arellano", cluster 
                sqrt(diag(vcovHC(m3, type = "HC1", method = "arellano", cluster = "group"))),
                sqrt(diag(vcovHC(m4, type = "HC1", method = "arellano", cluster = "group"))),
                sqrt(diag(vcovHC(m5, type = "HC1", method = "arellano", cluster = "group"))))
-# model 3,4 and 5 as OLS as AR(1) cannot be rejected at 5% level
+# model 3,4 AR(1) cannot be rejected at 5% level
 # so estimating them using OLS
 m3_ols <- plm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + repo_rate + pli,
            data = bs,
@@ -258,14 +258,9 @@ m4_ols <- plm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + unce
           index = c("prowess_code", "year"),
           model = "within")
 summary(m4_ols, vcov = vcovHC)
-m5_ols <- plm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + d.repo_rate + pli,
-           data = bs,
-          index = c("prowess_code", "year"),
-          model = "within")
-summary(m5_ols, vcov = vcovHC)
+
 rob_se3 <- list(sqrt(diag(vcovHC(m3_ols, type = "HC1"))),
-               sqrt(diag(vcovHC(m4_ols, type = "HC1"))),
-               sqrt(diag(vcovHC(m5_ols, type = "HC1"))))
+               sqrt(diag(vcovHC(m4_ols, type = "HC1"))))
 ```
 
 ## Introduction
@@ -388,20 +383,19 @@ stargazer(m1,
 
 The results indicate that PLI has had no significant effect on the investment levels of the beneficiaries for all the specifications except one, where there is a significant positive effect at the 5% level.
 
-In model 3,4 and 5, the AR(1) statistic turns out to be insignificant at the 5% level, that is we fail to reject the null hypothesis that there is no autocorrelation of order 1. This means that in these models, the application of OLS should give reasonable estimates. This is what is done next.
+In model 3 and 4, the AR(1) statistic turns out to be insignificant at the 5% level, that is we fail to reject the null hypothesis that there is no autocorrelation of order 1. This means that in these models, the application of OLS should give reasonable estimates. This is what is done next.
 
 
 ```{r plm,echo = FALSE}
 stargazer(m3_ols,
           m4_ols,
-          m5_ols,
           digits = 3,
           header = FALSE,
           type = "text", 
           se = rob_se3,
           title = "OLS Panel Regression Models of effect of PLI scheme on Category 1 beneficiary investment",
           model.numbers = FALSE,
-          column.labels = c("(3)", "(4)","(5)"))
+          column.labels = c("(3)", "(4)"))
 ```
 
 

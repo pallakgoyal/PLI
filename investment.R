@@ -280,7 +280,7 @@ FY2016 <- cor(subset(bs, year == "2016", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_
 FY2017 <- cor(subset(bs, year == "2017", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)), use = "na.or.complete")
 FY2018 <- cor(subset(bs, year == "2018", select = c(i.by.k,cf_1.by.k_1,s_1.by.k_1,d_1.by.k_1,i_1.by.k_1,ds.by.k)), use = "na.or.complete")
 mcor <- (abs(FY2016)+abs(FY2017)+abs(FY2018)+abs(FY2019)+abs(FY2020)+abs(FY2021)+abs(FY2022)+abs(FY2023))/8
-# model 3,4 and 5 as OLS as AR(1) cannot be rejected at 5% level
+# model 3,4 AR(1) cannot be rejected at 5% level
 # so estimating them using OLS
 m3_ols <- plm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + repo_rate + pli,
            data = bs,
@@ -292,21 +292,15 @@ m4_ols <- plm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + s_1.by.k_1 + d_1.by.k_1 + unce
           index = c("prowess_code", "year"),
           model = "within")
 summary(m4_ols, vcov = vcovHC)
-m5_ols <- plm(i.by.k ~ i_1.by.k_1 + cf_1.by.k_1 + ds.by.k + d_1.by.k_1 + uncertainty_1 + d.repo_rate + pli,
-           data = bs,
-          index = c("prowess_code", "year"),
-          model = "within")
-summary(m5_ols, vcov = vcovHC)
+
 rob_se3 <- list(sqrt(diag(vcovHC(m3_ols, type = "HC1"))),
-               sqrt(diag(vcovHC(m4_ols, type = "HC1"))),
-               sqrt(diag(vcovHC(m5_ols, type = "HC1"))))
+               sqrt(diag(vcovHC(m4_ols, type = "HC1"))))
 stargazer(m3_ols,
           m4_ols,
-          m5_ols,
           digits = 3,
           header = FALSE,
           type = "text", 
           se = rob_se3,
           title = "OLS Panel Regression Models of effect of PLI scheme on Category 1 beneficiary investment",
           model.numbers = FALSE,
-          column.labels = c("(3)", "(4)","(5)"))
+          column.labels = c("(3)", "(4)"))
