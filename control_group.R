@@ -25,7 +25,7 @@ class_10.11 <- unique(class_10.11$coprd_company_code)
 benificiary <- read.csv("./PLISFPI.csv")
 beneficiary_cmie <- subset(benificiary, CMIE.Footprint == "Yes", select = c("Name.of.Company","Category","Prowess.Code"))
 # write.csv(beneficiary_cmie,"./beneficiary_cmie.csv")
-# excluding scheme beneficaries from potential control group
+# excluding scheme beneficiaries from potential control group
 d.row <- which(class_10.11 %in% beneficiary_cmie$Prowess.Code)
 class_10.11 <- class_10.11[-d.row]
 write.csv(class_10.11, file = "./10.11.csv")
@@ -140,7 +140,7 @@ library(Matching)
 rr1 <- Match(Tr = ar$treat, X = glm1$fitted, ties = FALSE)
 # checking how good the matches are
 MatchBalance(treat ~ ar, match.out = rr1, nboots = 1000, data = ar)
-# does not appear to be a very good match
+# appears to be a good match
 # will get the final treatment and control groups at one place
 did <- rbind(ar[rr1$index.treated,], ar[rr1$index.control,])
 # getting the control group
@@ -358,6 +358,241 @@ m15 <- plm(log.sales ~ I(post*treat),
 summary(m15, vcov = vcovHC, type = "HC1")
 rob_se_sales <- list(sqrt(diag(vcovHC(m14, type = "HC1"))),
                   sqrt(diag(vcovHC(m15, type = "HC1"))))
+stargazer(m14, 
+          m15, 
+          digits = 3,
+          header = FALSE,
+          type = "text", 
+          se = rob_se_sales,
+          title = "Linear Panel Regression Models of Sales",
+          model.numbers = FALSE,
+          column.labels = c("(1)", "(2)"))
+# attempting to create a better matching set
+# create matching set only for the trimmed treatment group
+# trimming the top 10% from the treatment group
+treat_ar <- subset(treat_ar,treat_ar$ar <= quantile(treat_ar$ar,0.98))
+ar <- rbind(treat_ar, control_ar)
+# estimating logit for probability of treatment based on past revenues
+glm1 <- glm(treat ~ ar, data = ar)
+# using the logit model for matching
+library(Matching)
+rr1 <- Match(Tr = ar$treat, X = glm1$fitted, ties = FALSE)
+# checking how good the matches are
+MatchBalance(treat ~ ar, match.out = rr1, nboots = 1000, data = ar)
+# will get the final treatment and control groups at one place
+did <- rbind(ar[rr1$index.treated,], ar[rr1$index.control,])
+# getting the control group
+control_did <- merge(x = control, y = subset(did, treat == 0), all.y = TRUE, all.x = FALSE)
+# merging the data for treatment and control groups
+# creating category column in control data set
+control_did <- mutate(control_did, Category = rep(NA, nrow(control_did)))
+# removing duplicate rows in control group
+library(tidyverse)
+control_did <- control_did[!duplicated(control_did$id),]
+# removing columns in control that are not in treatment
+control_did <- control_did[,-15]
+# comparing the order of columns in control and treatment
+treat <- treat[,match(colnames(control_did), colnames(treat))]
+# merging treat and control
+data_did <- rbind(treat, control_did)
+# create a variable called post
+# takes value 1 if FY 22,23
+# takes 0 otherwise
+for (i in 1:nrow(data_did)){
+  if (data_did$year[i] == "2022" | data_did$year[i] == "2023"){
+    data_did$post[i] <- 1
+  }
+  else 
+    data_did$post[i] <- 0
+}
+# removing id variable as not required
+data_did <- data_did[,-14]
+# calculating investment
+for (i in 1:nrow(data_did)){
+  if(is.na(data_did$gross_intangible_assets_tot_addn[i]) == TRUE){
+    data_did$inv[i] <- data_did$gross_fixed_ast_addn[i]
+  }
+  else 
+    data_did$inv[i] <- data_did$gross_fixed_ast_addn[i] - data_did$gross_intangible_assets_tot_addn[i]
+}
+i.by.k <- data_did$inv/data_did$capital
+s.by.k <- data_did$sales/data_did$capital
+data_did$log.inv <- log(data_did$inv)
+data_did$log.sales <- log(data_did$sales)
+data_did$log.salary <- log(data_did$salary)
+# running panel data did regressions
+library(AER)
+library(plm)
+library(stargazer)
+data_did <- pdata.frame(data_did, index = c("prowess_code", "year"))
+# for investment
+m1 <- plm(inv ~ I(post*treat), 
+          data = data_did,
+          index = c("prowess_code", "year"),
+          method = "twoways",
+          model = "within")
+summary(m1, vcov = vcovHC, type = "HC1")
+m2 <- plm(inv ~ I(post*treat) + lag(sales), 
+          data = data_did,
+          index = c("prowess_code", "year"),
+          method = "twoways",
+          model = "within")
+summary(m2, vcov = vcovHC, type = "HC1")
+m3 <- plm(i.by.k ~ I(post*treat), 
+          data = data_did,
+          index = c("prowess_code", "year"),
+          method = "twoways",
+          model = "within")
+summary(m3, vcov = vcovHC, type = "HC1")
+m4 <- plm(i.by.k ~ I(post*treat) + lag(s.by.k), 
+          data = data_did,
+          index = c("prowess_code", "year"),
+          method = "twoways",
+          model = "within")
+summary(m4, vcov = vcovHC, type = "HC1")
+m5 <- plm(log.inv ~ I(post*treat), 
+          data = data_did,
+          index = c("prowess_code", "year"),
+          method = "twoways",
+          model = "within")
+summary(m5, vcov = vcovHC, type = "HC1")
+m6 <- plm(log.inv ~ I(post*treat) + lag(log.sales), 
+          data = data_did,
+          index = c("prowess_code", "year"),
+          method = "twoways",
+          model = "within")
+summary(m6, vcov = vcovHC, type = "HC1")
+rob_se_inv1 <- list(sqrt(diag(vcovHC(m1, type = "HC1"))),
+                    sqrt(diag(vcovHC(m2, type = "HC1"))),
+                    sqrt(diag(vcovHC(m3, type = "HC1"))))
+
+rob_se_inv2 <- list(sqrt(diag(vcovHC(m4, type = "HC1"))),
+                    sqrt(diag(vcovHC(m5, type = "HC1"))),
+                    sqrt(diag(vcovHC(m6, type = "HC1"))))                   
+stargazer(m1, 
+          m2, 
+          m3, 
+          digits = 3,
+          header = FALSE,
+          type = "text", 
+          se = rob_se_inv1,
+          title = "Linear Panel Regression Models of Investment",
+          model.numbers = FALSE,
+          column.labels = c("(1)", "(2)", "(3)"))
+stargazer(m4, 
+          m5, 
+          m6, 
+          digits = 3,
+          header = FALSE,
+          type = "text", 
+          se = rob_se_inv2,
+          title = "Linear Panel Regression Models of Investment",
+          model.numbers = FALSE,
+          column.labels = c("(4)", "(5)", "(6)"))
+
+# for salary
+m7 <- plm(salary ~ I(post*treat), 
+          data = data_did,
+          index = c("prowess_code", "year"),
+          method = "twoways",
+          model = "within")
+summary(m7, vcov = vcovHC, type = "HC1")
+
+m8 <- plm(salary ~ I(post*treat) + sales, 
+          data = data_did,
+          index = c("prowess_code", "year"),
+          method = "twoways",
+          model = "within")
+summary(m8, vcov = vcovHC, type = "HC1")
+rob_se_salary1 <- list(sqrt(diag(vcovHC(m7, type = "HC1"))),
+                       sqrt(diag(vcovHC(m8, type = "HC1"))))
+stargazer(m7, 
+          m8,
+          digits = 3,
+          header = FALSE,
+          type = "text", 
+          se = rob_se_salary1,
+          title = "Linear Panel Regression Models of Salary",
+          model.numbers = FALSE,
+          column.labels = c("(1)", "(2)"))
+
+m9 <- plm(log(salary) ~ I(post*treat), 
+          data = data_did,
+          index = c("prowess_code", "year"),
+          method = "twoways",
+          model = "within")
+summary(m9, vcov = vcovHC, type = "HC1")
+
+m10 <- plm(log(salary) ~ I(post*treat) + log(sales), 
+           data = data_did,
+           index = c("prowess_code", "year"),
+           method = "twoways",
+           model = "within")
+summary(m10, vcov = vcovHC, type = "HC1")
+
+rob_se_salary2 <- list(sqrt(diag(vcovHC(m9, type = "HC1"))),
+                       sqrt(diag(vcovHC(m10, type = "HC1"))))
+stargazer(m9,
+          m10,
+          digits = 3,
+          header = FALSE,
+          type = "text", 
+          se = rob_se_salary2,
+          title = "Linear Panel Regression Models of Salary",
+          model.numbers = FALSE,
+          column.labels = c("(3)","(4)"))
+# for cf
+
+m11 <- plm(cf_net ~ I(post*treat), 
+           data = data_did,
+           index = c("prowess_code", "year"),
+           method = "twoways",
+           model = "within")
+summary(m11, vcov = vcovHC, type = "HC1")
+m12 <- plm(cf_net ~ I(post*treat)+sales, 
+           data = data_did,
+           index = c("prowess_code", "year"),
+           method = "twoways",
+           model = "within")
+summary(m12, vcov = vcovHC, type = "HC1")
+
+m13 <- plm(cf_net ~ I(post*treat)+log.sales, 
+           data = data_did,
+           index = c("prowess_code", "year"),
+           method = "twoways",
+           model = "within")
+summary(m12, vcov = vcovHC, type = "HC1")
+
+rob_se_cf <- list(sqrt(diag(vcovHC(m11, type = "HC1"))),
+                  sqrt(diag(vcovHC(m12, type = "HC1"))),
+                  sqrt(diag(vcovHC(m13, type = "HC1"))))
+
+stargazer(m11, 
+          m12,
+          m13,
+          digits = 3,
+          header = FALSE,
+          type = "text", 
+          se = rob_se_cf,
+          title = "Linear Panel Regression Models of Cash Flows",
+          model.numbers = FALSE,
+          column.labels = c("(1)", "(2)","(3)"))
+
+m14 <- plm(sales ~ I(post*treat), 
+           data = data_did,
+           index = c("prowess_code", "year"),
+           method = "twoways",
+           model = "within")
+summary(m14, vcov = vcovHC, type = "HC1")
+
+m15 <- plm(log.sales ~ I(post*treat), 
+           data = data_did,
+           index = c("prowess_code", "year"),
+           method = "twoways",
+           model = "within")
+summary(m15, vcov = vcovHC, type = "HC1")
+rob_se_sales <- list(sqrt(diag(vcovHC(m14, type = "HC1"))),
+                     sqrt(diag(vcovHC(m15, type = "HC1"))))
 stargazer(m14, 
           m15, 
           digits = 3,
